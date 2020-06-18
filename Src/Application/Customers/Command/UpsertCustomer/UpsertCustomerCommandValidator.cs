@@ -34,21 +34,16 @@ namespace Application.Customers.Command.UpsertCustomer
                 .MaximumLength(50).WithMessage("Bank Account Number Must Be Less than 50 Characters");
 
             RuleFor(i => i.Email).EmailAddress().WithMessage("Email Is Invalid")
-                .MaximumLength(150).WithMessage("Email Must Be Less than 150 Characters");
+                .MaximumLength(150).WithMessage("Email Must Be Less than 150 Characters")
+                .MustAsync(UniqueEmail).WithMessage("Email is already Exist");
 
             RuleFor(i => i.PhoneNumber).NotEmpty().WithMessage("Phone Number Is Required")
                 .MaximumLength(15).WithMessage("Phone Number Must Be Less than 15 Characters")
                 .Must(ValidPhoneNumber).WithMessage("Phone Number is Invalid");
 
             RuleFor(i => i.DateOfBirth).NotEmpty().WithMessage("Date of Birth Is Required")
-                .Must(ValidDateTime).WithMessage("Date of Birth is Invalid");
-
-            When(i => i.Id <= 0, () =>
-            {
-                RuleFor(i => i.Email).MustAsync(UniqueEmail).WithMessage("Email is already Exist");
-                RuleFor(i => i.DateOfBirth).MustAsync(UniquePersonInfo).WithMessage("This Customer is Already Exist");
-
-            });
+                .Must(ValidDateTime).WithMessage("Date of Birth is Invalid")
+                .MustAsync(UniquePersonInfo).WithMessage("This Customer is Already Exist");
 
 
         }
@@ -57,7 +52,7 @@ namespace Application.Customers.Command.UpsertCustomer
         {
             DateTime dt = DateTime.Parse(arg1);
 
-            return !await context.Customers.AnyAsync(c => c.DateOfBirth == dt && c.FirstName == model.FirstName && c.LastName == model.LastName, arg2);
+            return !await context.Customers.AnyAsync(c => c.Id != model.Id && c.DateOfBirth == dt && c.FirstName == model.FirstName && c.LastName == model.LastName, arg2);
         }
 
         private bool ValidDateTime(string arg1)
@@ -70,9 +65,9 @@ namespace Application.Customers.Command.UpsertCustomer
             return phoneValidation.IsMobileNumber(arg1) && phoneValidation.IsValidateNumber(arg1);
         }
 
-        private async Task<bool> UniqueEmail(string arg1, CancellationToken arg2)
+        private async Task<bool> UniqueEmail(UpsertCustomerCommand model, string arg1, CancellationToken arg2)
         {
-            return !await context.Customers.AnyAsync(c => c.Email == arg1, arg2);
+            return !await context.Customers.AnyAsync(c => c.Id != model.Id && c.Email == arg1, arg2);
         }
 
         private async Task<bool> CustomerExist(long arg1, CancellationToken arg2)
