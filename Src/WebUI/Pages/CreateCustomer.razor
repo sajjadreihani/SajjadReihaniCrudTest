@@ -1,0 +1,131 @@
+﻿@page "/CreateCustomer"
+@page "/CreateCustomer/{CustomerId:long}"
+@inject IJSRuntime JSRuntime
+@inject MediatR.IMediator mediator
+@inject NavigationManager NavigationManager
+
+
+@if (CustomerId == 0)
+{
+    <h1>Create Customer</h1>
+
+}
+else
+{
+    <h1>Edit Customer With Customer Id @CustomerId</h1>
+}
+
+<form @onsubmit="Submit">
+    @if (Errors.Count > 0)
+    {
+        <div class="alert alert-danger" role="alert">
+            @foreach (var error in Errors)
+            {
+                <p>@error</p>
+            }
+        </div>
+    }
+    <div class="form-group">
+        <label for="exampleInputEmail1">First Name</label>
+        <input type="text" class="form-control" @bind-value="customerInfo.FirstName" required placeholder="Enter First Name">
+
+    </div>
+
+    <div class="form-group">
+        <label for="exampleInputEmail1">Last Name</label>
+        <input type="text" class="form-control" @bind-value="customerInfo.LastName" required placeholder="Enter Last Name">
+
+    </div>
+    <div class="form-group">
+        <label for="exampleInputEmail1">Date of Birth</label>
+        <input type="text" class="form-control" @bind-value="customerInfo.DateOfBirth" required placeholder="Example 06/11/1994">
+
+    </div>    <div class="form-group">
+        <label for="exampleInputEmail1">Email address</label>
+        <input type="email" class="form-control" @bind-value="customerInfo.Email" required placeholder="Enter email">
+
+    </div>    <div class="form-group">
+        <label for="exampleInputEmail1">Phone Number</label>
+        <input type="tel" class="form-control" id="phone" @oninput="CheckValidate" required placeholder="Enter Phone Number">
+
+    </div>    <div class="form-group">
+        <label for="exampleInputEmail1">Bank Account Number</label>
+        <input type="text" class="form-control" @bind-value="customerInfo.BankAccountNumber" required placeholder="Enter Bank Account Number">
+
+    </div>
+    <button type="submit" disabled=@(!IsValid) class="btn btn-primary" @onsubmit="Submit">Submit</button>
+</form>
+
+
+@code {
+    [Parameter]
+    public long CustomerId { get; set; }
+    private bool IsValid = false;
+    public Application.Customers.Command.UpsertCustomer.UpsertCustomerCommand customerInfo { get; set; }
+    private List<string> Errors = new List<string>();
+
+    private async Task Submit()
+    {
+        try
+        {
+            await mediator.Send(customerInfo);
+            NavigationManager.NavigateTo("CustomerList");
+
+        }
+        catch (FluentValidation.ValidationException ex)
+        {
+            Errors = ex.Errors.Select(e => e.ErrorMessage).ToList();
+        }
+    }
+
+    public async Task CheckValidate()
+    {
+        IsValid = await JSRuntime.InvokeAsync<bool>("isValid");
+        if (IsValid)
+        {
+            customerInfo.PhoneNumber = await JSRuntime.InvokeAsync<string>("getPhoneNumer");
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        customerInfo = new Application.Customers.Command.UpsertCustomer.UpsertCustomerCommand();
+        if (CustomerId > 0)
+        {
+            var customer = await mediator.Send(new Application.Customers.Queries.GetCustomer.GetCustomerQuery()
+            {
+                Id = CustomerId
+            });
+
+            if (customer is null)
+                CustomerId = 0;
+            else
+            {
+                customerInfo.Id = CustomerId;
+                customerInfo.BankAccountNumber = customer.BankAccountNumber;
+                customerInfo.DateOfBirth = customer.DateOfBirth;
+                customerInfo.Email = customer.Email;
+                customerInfo.FirstName = customer.FirstName;
+                customerInfo.LastName = customer.LastName;
+                customerInfo.PhoneNumber = customer.PhoneNumber;
+            }
+        }
+
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("intilizePhone");
+            if(!string.IsNullOrEmpty(customerInfo.PhoneNumber))
+            {
+                await JSRuntime.InvokeVoidAsync("setPhoneNumber", customerInfo.PhoneNumber);
+                IsValid = true;
+
+            }
+        }
+    }
+
+
+}
