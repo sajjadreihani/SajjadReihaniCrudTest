@@ -72,11 +72,11 @@ namespace CrudTest.Spec.Features.Customers
             testRunner.CollectScenarioErrors();
         }
         
-        [TechTalk.SpecRun.ScenarioAttribute("Navigate to CreateCustomer", SourceLine=6)]
-        public virtual void NavigateToCreateCustomer()
+        [TechTalk.SpecRun.ScenarioAttribute("Post Data to UpsertCustomer", SourceLine=6)]
+        public virtual void PostDataToUpsertCustomer()
         {
             string[] tagsOfScenario = ((string[])(null));
-            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Navigate to CreateCustomer", null, ((string[])(null)));
+            TechTalk.SpecFlow.ScenarioInfo scenarioInfo = new TechTalk.SpecFlow.ScenarioInfo("Post Data to UpsertCustomer", null, ((string[])(null)));
 #line 7
 this.ScenarioInitialize(scenarioInfo);
 #line hidden
@@ -97,11 +97,38 @@ this.ScenarioInitialize(scenarioInfo);
             else
             {
                 this.ScenarioStart();
+                TechTalk.SpecFlow.Table table1 = new TechTalk.SpecFlow.Table(new string[] {
+                            "Name",
+                            "Value"});
+                table1.AddRow(new string[] {
+                            "FirstName",
+                            "test"});
+                table1.AddRow(new string[] {
+                            "LastName",
+                            "test"});
+                table1.AddRow(new string[] {
+                            "DateOfBirth",
+                            "15/06/1994"});
+                table1.AddRow(new string[] {
+                            "Email",
+                            "test@test.cc"});
+                table1.AddRow(new string[] {
+                            "PhoneNumber",
+                            "+989391234567"});
+                table1.AddRow(new string[] {
+                            "BankAccountNumber",
+                            "123456"});
 #line 8
- testRunner.When("I clicked on", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+ testRunner.Given("We have the following entries", ((string)(null)), table1, "Given ");
 #line hidden
-#line 9
- testRunner.Then("CreateCustomer Page must be shown", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line 16
+ testRunner.When("I posted data", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
+#line hidden
+#line 17
+ testRunner.Then("I get an Unit result", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "Then ");
+#line hidden
+#line 18
+  testRunner.And("there is one result with Email test@test.cc", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
             }
             this.ScenarioCleanup();
